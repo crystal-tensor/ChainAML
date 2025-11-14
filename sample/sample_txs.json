@@ -1,0 +1,119 @@
+[
+  {
+    "tx_id": "tx_coinbase_01",
+    "inputs": [],
+    "outputs": [
+      { "address": "miner_pool_wallet", "amount": 6.25 }
+    ],
+    "timestamp": 1678886400,
+    "is_coinbase": true
+  },
+  {
+    "tx_id": "tx_mining_wash_01",
+    "inputs": [
+      { "address": "miner_pool_wallet", "amount": 6.25, "prev_tx_id": "tx_coinbase_01" }
+    ],
+    "outputs": [
+      { "address": "miner_wash_001", "amount": 0.5 },
+      { "address": "miner_wash_002", "amount": 0.5 },
+      { "address": "miner_wash_003", "amount": 0.5 },
+      { "address": "miner_wash_004", "amount": 0.5 },
+      { "address": "miner_wash_005", "amount": 0.5 },
+      { "address": "miner_wash_006", "amount": 0.5 },
+      { "address": "miner_wash_007", "amount": 0.5 },
+      { "address": "miner_wash_008", "amount": 0.5 },
+      { "address": "miner_wash_009", "amount": 0.5 },
+      { "address": "miner_wash_010", "amount": 0.5 }
+    ],
+    "timestamp": 1678886500,
+    "is_coinbase": false
+  },
+  {
+    "tx_id": "tx_spray_01",
+    "inputs": [
+      { "address": "pig_butcher_victim_funds", "amount": 100, "prev_tx_id": "tx_victim_01" }
+    ],
+    "outputs": [
+      { "address": "spray_addr_01", "amount": 4.0 },
+      { "address": "spray_addr_02", "amount": 4.0 },
+      { "address": "spray_addr_03", "amount": 4.0 },
+      { "address": "spray_addr_04", "amount": 4.0 },
+      { "address": "spray_addr_05", "amount": 4.0 },
+      { "address": "spray_addr_06", "amount": 4.0 },
+      { "address": "spray_addr_07", "amount": 4.0 },
+      { "address": "spray_addr_08", "amount": 4.0 },
+      { "address": "spray_addr_09", "amount": 4.0 },
+      { "address": "spray_addr_10", "amount": 4.0 },
+      { "address": "spray_addr_11", "amount": 4.0 },
+      { "address": "spray_addr_12", "amount": 4.0 },
+      { "address": "spray_addr_13", "amount": 4.0 },
+      { "address": "spray_addr_14", "amount": 4.0 },
+      { "address": "spray_addr_15", "amount": 4.0 },
+      { "address": "spray_addr_16", "amount": 4.0 },
+      { "address": "spray_addr_17", "amount": 4.0 },
+      { "address": "spray_addr_18", "amount": 4.0 },
+      { "address": "spray_addr_19", "amount": 4.0 },
+      { "address": "spray_addr_20", "amount": 4.0 },
+      { "address": "spray_addr_21", "amount": 4.0 },
+      { "address": "spray_addr_22", "amount": 4.0 },
+      { "address": "spray_addr_23", "amount": 4.0 },
+      { "address": "spray_addr_24", "amount": 4.0 },
+      { "address": "spray_addr_25", "amount": 4.0 }
+    ],
+    "timestamp": 1678886600,
+    "is_coinbase": false
+  },
+  {
+    "tx_id": "tx_coinjoin_01",
+    "inputs": [
+      { "address": "cj_user_A", "amount": 1.1, "prev_tx_id": "tx_A_01" },
+      { "address": "cj_user_B", "amount": 1.1, "prev_tx_id": "tx_B_01" },
+      { "address": "cj_user_C", "amount": 1.1, "prev_tx_id": "tx_C_01" }
+    ],
+    "outputs": [
+      { "address": "cj_change_A", "amount": 0.1 },
+      { "address": "cj_change_B", "amount": 0.1 },
+      { "address": "cj_change_C", "amount": 0.1 },
+      { "address": "cj_out_X", "amount": 1.0 },
+      { "address": "cj_out_Y", "amount": 1.0 },
+      { "address": "cj_out_Z", "amount": 1.0 }
+    ],
+    "timestamp": 1678886700,
+    "is_coinbase": false
+  },
+  {
+    "tx_id": "tx_funnel_hub_01",
+    "inputs": [
+      { "address": "spray_addr_01", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_02", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_03", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_04", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_05", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_06", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_07", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_08", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_09", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_10", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_11", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_12", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_13", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_14", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_15", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_16", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_17", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_18", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_19", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_20", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_21", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_22", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_23", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_24", "amount": 4.0, "prev_tx_id": "tx_spray_01" },
+      { "address": "spray_addr_25", "amount": 4.0, "prev_tx_id": "tx_spray_01" }
+    ],
+    "outputs": [
+      { "address": "prince_group_wallet_1", "amount": 99.8 }
+    ],
+    "timestamp": 1678886800,
+    "is_coinbase": false
+  }
+]

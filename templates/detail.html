@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检测详情 - ChainAML</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: opacity 0.3s;
+        }
+
+        .back-btn:hover {
+            opacity: 0.9;
+        }
+
+        .results-table {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #667eea;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .tx-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .tx-id:hover {
+            color: #764ba2;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-high {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .badge-medium {
+            background: #ffa500;
+            color: white;
+        }
+
+        .badge-low {
+            background: #51cf66;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .detail-item {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .detail-item strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">← 返回首页</a>
+            <h1 id="pageTitle">检测详情</h1>
+            <p id="pageDescription">正在加载...</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            正在加载检测结果...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="results-table">
+                <div id="empty" class="empty" style="display: none;">
+                    未检测到可疑交易
+                </div>
+                <table id="resultsTable" style="display: none;">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交易详情模态框 -->
+    <div id="txModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>交易详情</h2>
+            <div id="txDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        const detectionType = '{{ detection_type }}';
+        const typeNames = {
+            'spray': { name: '💧 喷洒检测', desc: '检测将大量资金分散到多个小额输出的可疑交易模式' },
+            'funnel': { name: '🔄 漏斗检测', desc: '检测将多个输入汇聚到少数输出的交易模式' },
+            'coinjoin': { name: '🔀 混币检测', desc: '检测类似CoinJoin的混币交易' },
+            'mining': { name: '⛏️ 挖矿洗钱检测', desc: '检测与挖矿相关的洗钱活动' },
+            'quantum': { name: '⚛️ 量子算法检测', desc: '基于量子抗性哈希链的高级检测算法，融合金丝雀水印机制和跨链映射技术' },
+            'scoreboard': { name: '📊 风险评分板', desc: '综合所有检测结果的风险评分和排名' }
+        };
+
+        document.getElementById('pageTitle').textContent = typeNames[detectionType]?.name || '检测详情';
+        document.getElementById('pageDescription').textContent = typeNames[detectionType]?.desc || '';
+
+        async function loadDetectionDetails() {
+            try {
+                const response = await fetch(`/api/detection/${detectionType}`);
+                if (!response.ok) {
+                    throw new Error('无法加载检测结果');
+                }
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                if (!data.results || data.results.length === 0) {
+                    document.getElementById('empty').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('resultsTable').style.display = 'table';
+                renderTable(data.results);
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '错误: ' + error.message;
+            }
+        }
+
+        function renderTable(results) {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+
+            // 获取所有可能的列
+            const columns = new Set();
+            results.forEach(row => {
+                Object.keys(row).forEach(key => columns.add(key));
+            });
+
+            // 创建表头
+            let headRow = '<tr>';
+            const columnOrder = ['tx_id', 'risk_score', 'reason', 'canary_watermark_id', 'cross_chain_detected', 'amount', 'timestamp', 'inputs', 'outputs'];
+            const remainingCols = Array.from(columns).filter(col => !columnOrder.includes(col));
+            const finalOrder = [...columnOrder.filter(col => columns.has(col)), ...remainingCols];
+
+            finalOrder.forEach(col => {
+                const colName = getColumnName(col);
+                headRow += `<th>${colName}</th>`;
+            });
+            headRow += '</tr>';
+            tableHead.innerHTML = headRow;
+
+            // 创建表体
+            tableBody.innerHTML = '';
+            results.forEach(row => {
+                let bodyRow = '<tr>';
+                finalOrder.forEach(col => {
+                    let cell = row[col] !== undefined ? row[col] : '';
+                    
+                    if (col === 'tx_id' && cell) {
+                        cell = `<span class="tx-id" onclick="showTxDetails('${cell}')">${cell}</span>`;
+                    } else if (col === 'risk_score' && typeof cell === 'number') {
+                        const badgeClass = cell >= 0.7 ? 'badge-high' : cell >= 0.4 ? 'badge-medium' : 'badge-low';
+                        cell = `<span class="badge ${badgeClass}">${(cell * 100).toFixed(1)}%</span>`;
+                    } else if (col === 'canary_watermark_id' && cell) {
+                        cell = `<span style="color: #ff6b6b; font-weight: bold;">🔖 ${cell}</span>`;
+                    } else if (col === 'cross_chain_detected' && cell === true) {
+                        cell = `<span style="color: #ff6b6b; font-weight: bold;">⚠️ 检测到跨链活动</span>`;
+                    } else if (col === 'cross_chain_detected' && cell === false) {
+                        cell = '<span style="color: #51cf66;">✓ 无跨链活动</span>';
+                    } else if (typeof cell === 'object' && cell !== null) {
+                        cell = JSON.stringify(cell);
+                    } else if (cell === null || cell === undefined) {
+                        cell = '-';
+                    }
+                    
+                    bodyRow += `<td>${cell}</td>`;
+                });
+                bodyRow += '</tr>';
+                tableBody.innerHTML += bodyRow;
+            });
+        }
+
+        function getColumnName(col) {
+            const names = {
+                'tx_id': '交易ID',
+                'risk_score': '风险评分',
+                'reason': '原因',
+                'canary_watermark_id': '🔖 金丝雀水印',
+                'cross_chain_detected': '🌐 跨链映射',
+                'amount': '金额',
+                'timestamp': '时间戳',
+                'inputs': '输入数量',
+                'outputs': '输出数量',
+                'cv': '变异系数',
+                'num_outputs': '输出数量',
+                'num_inputs': '输入数量',
+                'total_amount': '总金额',
+                'quantum_probability': '量子概率',
+                'quantum_score': '量子分数',
+                'detected_by': '检测方法'
+            };
+            return names[col] || col;
+        }
+
+        async function showTxDetails(txId) {
+            try {
+                const response = await fetch(`/api/transaction/${txId}`);
+                if (!response.ok) {
+                    throw new Error('无法加载交易详情');
+                }
+                const tx = await response.json();
+                
+                const modal = document.getElementById('txModal');
+                const details = document.getElementById('txDetails');
+                
+                let html = '';
+                for (const [key, value] of Object.entries(tx)) {
+                    let displayValue = value;
+                    if (typeof value === 'object' && value !== null) {
+                        displayValue = JSON.stringify(value, null, 2);
+                    }
+                    html += `<div class="detail-item"><strong>${key}:</strong> ${displayValue}</div>`;
+                }
+                
+                details.innerHTML = html;
+                modal.style.display = 'block';
+            } catch (error) {
+                alert('无法加载交易详情: ' + error.message);
+            }
+        }
+
+        // 关闭模态框
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('txModal').style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('txModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // 页面加载时获取数据
+        loadDetectionDetails();
+    </script>
+</body>
+</html>
+
