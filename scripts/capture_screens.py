@@ -20,7 +20,7 @@ def main():
     driver = setup_driver()
     try:
         # 首页流程（index.html）
-        driver.get('http://localhost:5000/')
+        driver.get('http://localhost:6922/')
         time.sleep(1.5)
         # 触发流程
         try:
@@ -39,7 +39,7 @@ def main():
         driver.save_screenshot(os.path.join(OUT, 'step4_ring.png'))
 
         # 分类列表页
-        driver.get('http://localhost:5000/classification/spray')
+        driver.get('http://localhost:6922/classification/spray')
         time.sleep(1.0)
         driver.save_screenshot(os.path.join(OUT, 'classification_list.png'))
     finally:

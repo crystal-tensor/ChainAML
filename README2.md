@@ -69,16 +69,16 @@ ChainAML-PoC/
    ```
    *(注：需确保安装 qiskit 与 qiskit-aer 以支持量子模拟)*
 
-2. **启动服务**：
+2. **运行 Web 应用**:
    ```bash
    python web_app.py
    ```
-   系统将自动寻找可用端口（默认 5000），并尝试关闭冲突进程。
+   系统将自动寻找可用端口（默认 6922），并尝试关闭冲突进程。
 
-3. **访问界面**：
-   - **首页 (流程视图)**: `http://localhost:5000/` 或 `http://localhost:5000/index2`
-   - **协同管理**: `http://localhost:5000/aml`
-   - **分类列表**: `http://localhost:5000/classification/spray`
+3. **访问界面**:
+   - **首页 (流程视图)**: `http://localhost:6922/` 或 `http://localhost:6922/index2`
+   - **协同管理**: `http://localhost:6922/aml`
+   - **分类列表**: `http://localhost:6922/classification/spray`
 
 ---
 

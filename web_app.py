@@ -197,9 +197,9 @@ if __name__ == '__main__':
     
     preferred = os.getenv('PORT')
     try:
-        port = int(preferred) if preferred else 5000
+        port = int(preferred) if preferred else 6922
     except:
-        port = 5000
+        port = 6922
 
     max_attempts = 10
     bound = False
