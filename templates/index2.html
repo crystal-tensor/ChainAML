@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChainAML 协同控制台 · 进程与展示</title>
+  <style>
+    :root {
+      --bg: #0a0a0f; --panel: #12121a; --border: #2a2a33; --text: #e8e8f0; --dim: #8a8aa0;
+      --cyan: #00f3ff; --green: #00ff9d; --pink: #ff0055; --violet: #764ba2; --indigo: #667eea;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, Inter, Helvetica, Arial, sans-serif; }
+    .layout { display:grid; grid-template-columns: 280px 1fr; grid-template-rows: 60px 1fr 220px; height:100vh; }
+    .header { grid-column: 1/-1; background: var(--panel); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; }
+    .logo { font-weight:700; letter-spacing:-0.5px; }
+    .tabs a { color: var(--indigo); text-decoration:none; padding:8px 12px; background:#1b1b25; border:1px solid var(--border); border-radius:8px; margin-left:8px; }
+    .sidebar { background: var(--panel); border-right:1px solid var(--border); padding:16px; }
+    .group-title { font-size:12px; color: var(--dim); margin-bottom:10px; text-transform: uppercase; }
+    .algo-card { background:#0f0f15; border:1px solid var(--border); padding:10px; margin-bottom:10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:#333; }
+    .dot.on { background: var(--cyan); box-shadow:0 0 6px var(--cyan); }
+    .main { background: #0b0b12; padding:16px; display:grid; grid-template-columns: 1.1fr 1fr; gap:16px; overflow:auto; }
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px; }
+    .panel-title { color: var(--indigo); font-size:14px; margin-bottom:8px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+    .step { background:#0f0f15; border:1px solid var(--border); border-radius:8px; padding:12px; position:relative; }
+    .step h3 { font-size:13px; margin-bottom:6px; }
+    .tag { font-size:11px; padding:2px 6px; border-radius:6px; display:inline-block; margin-bottom:6px; border:1px solid var(--border); }
+    .tag.hunt { color: var(--cyan); } .tag.slime { color: var(--green); } .tag.qsma { color: var(--pink); } .tag.phase4 { color: var(--violet); }
+    .arrow { position:absolute; right:-18px; top:50%; color:#444; }
+    .controls { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+    .control { border:1px solid var(--border); border-radius:8px; padding:10px; background:#0f0f15; }
+    .control h4 { font-size:13px; margin-bottom:6px; }
+    .slider { width:100%; }
+    .stats { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+    .stat { background:#0f0f15; border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+    .value { color: var(--indigo); font-weight:700; }
+    .table { width:100%; border-collapse:collapse; }
+    .table th, .table td { border-bottom:1px solid var(--border); padding:8px; font-size:13px; }
+    .badge { padding:2px 8px; border-radius:12px; font-size:12px; }
+    .high { background:#ff6b6b; color:#fff; } .medium { background:#ffa500; color:#fff; } .low { background:#51cf66; color:#fff; }
+    .tx { color: var(--indigo); text-decoration:underline; cursor:pointer; }
+    .console { grid-column: 1/-1; background:#000; border-top:1px solid var(--border); padding:10px; font-family: monospace; font-size:12px; }
+    .logs { height:150px; overflow:auto; color:#aaa; }
+    .actions { display:flex; gap:8px; margin-top:8px; }
+    .btn { background: var(--indigo); border:none; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer; }
+    .btn.ghost { background:#1b1b25; color: var(--indigo); border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="header">
+      <div class="logo">ChainAML · Synergy</div>
+      <div class="tabs">
+        <a href="/">首页</a>
+        <a href="/aml">协同管理</a>
+        <a href="/index2" class="btn ghost">融合视图</a>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="group-title">基础层 (Filters)</div>
+      <div class="algo-card"><span>GNN Link Prediction</span><div class="dot on"></div></div>
+      <div class="algo-card"><span>Rule-Based Engine</span><div class="dot on"></div></div>
+      <div class="algo-card"><span>High-Freq Monitor</span><div class="dot on"></div></div>
+      <div class="algo-card"><span>KYC Entity Matching</span><div class="dot on"></div></div>
+      <div class="algo-card"><span>Subgraph Mining</span><div class="dot on"></div></div>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <div class="panel-title">检测进程</div>
+        <div class="grid-3">
+          <div class="step" id="step1">
+            <div class="arrow">→</div>
+            <span class="tag hunt">hunt.py</span>
+            <h3>Phase I · 时间共振检测</h3>
+            <div style="color:#aaa; font-size:12px;">以时间分桶与z-score识别心跳式协同尖刺</div>
+            <div id="step1Chart" style="height:140px; margin-top:8px; background:#0b0b12; border:1px solid var(--border);"></div>
+          </div>
+          <div class="step" id="step2">
+            <div class="arrow">→</div>
+            <span class="tag slime">slime_mold_sim.py</span>
+            <h3>Phase II · 黏菌路径追踪</h3>
+            <div style="color:#aaa; font-size:12px;">用进废退与陷阱吸引模拟网络最优洗钱路径</div>
+            <div id="step2Canvas" style="height:140px; margin-top:8px; background:#030308; border:1px solid var(--border);"></div>
+          </div>
+          <div class="step" id="step3">
+            <span class="tag qsma">QSMA.py</span>
+            <h3>Phase III · 量子干涉裁决</h3>
+            <div style="color:#aaa; font-size:12px;">Grover扩散器放大目标态，噪音相消形成波峰</div>
+            <div id="step3Chart" style="height:140px; margin-top:8px; background:#0b0b12; border:1px solid var(--border);"></div>
+          </div>
+        </div>
+        <div class="step" id="step4" style="margin-top:12px;">
+          <span class="tag phase4">Phase IV · 五类检测详情</span>
+          <h3>异常地址与风险概率</h3>
+          <div id="typeDetails" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">协同管理</div>
+        <div class="controls" id="controls"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn" id="loadBtn">加载检测结果</button>
+          <button class="btn ghost" id="fuseBtn">融合评分</button>
+          <a class="btn ghost" href="/detail/scoreboard">查看评分板</a>
+        </div>
+        <div class="panel-title" style="margin-top:10px;">统计</div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="logs" id="logs"></div>
+      <div class="actions">
+        <button class="btn" id="runBtn">启动协同流程</button>
+        <button class="btn ghost" id="resetBtn">重置</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const algorithms = [
+      { key: 'spray', name: '喷洒' },
+      { key: 'funnel', name: '漏斗' },
+      { key: 'coinjoin', name: '混币' },
+      { key: 'mining', name: '挖矿' },
+      { key: 'quantum', name: '量子' },
+      { key: 'scoreboard', name: '评分板' }
+    ];
+    const state = { data: {}, enabled: {}, weights: {}, fused: [] };
+
+    function log(s){ const l=document.getElementById('logs'); const d=document.createElement('div'); d.textContent=s; l.appendChild(d); l.scrollTop=l.scrollHeight; }
+
+    function initControls(){
+      const c=document.getElementById('controls'); c.innerHTML='';
+      algorithms.forEach(a=>{
+        const div=document.createElement('div'); div.className='control';
+        const w=state.weights[a.key] ?? 1; state.enabled[a.key]=a.key!=='scoreboard'; state.weights[a.key]=w;
+        div.innerHTML=`<h4>${a.name}</h4>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>启用</span><input type="checkbox" ${state.enabled[a.key]?'checked':''} data-k="${a.key}" class="tog">
+          </div>
+          <div style="margin-top:6px;"><input type="range" min="0" max="3" step="0.1" value="${w}" data-k="${a.key}" class="slider"><div style="color:#aaa;font-size:12px;">权重: <span id="w-${a.key}">${w}</span></div></div>`;
+        c.appendChild(div);
+      });
+      c.querySelectorAll('.tog').forEach(el=>el.addEventListener('change',e=>{ state.enabled[e.target.dataset.k]=e.target.checked; }));
+      c.querySelectorAll('.slider').forEach(el=>el.addEventListener('input',e=>{ state.weights[e.target.dataset.k]=parseFloat(e.target.value); document.getElementById('w-'+e.target.dataset.k).textContent=e.target.value; }));
+    }
+
+    function normalizeScore(row){
+      if(typeof row.risk_score==='number') return row.risk_score;
+      if(typeof row.quantum_probability==='number') return Math.min(Math.max(row.quantum_probability,0),1);
+      const fields=['spray_score','funnel_score','coinjoin_score','mining_score'];
+      for(const f of fields){ if(typeof row[f]==='number') return Math.min(Math.max(row[f],0),1); }
+      return 0.5;
+    }
+
+    async function load(){
+      const r=await fetch('/api/detections'); const j=await r.json(); state.data=j; renderStats(); renderPhase4(); log('检测结果已加载');
+    }
+
+    function renderStats(){ const s=document.getElementById('stats'); s.innerHTML=''; algorithms.forEach(a=>{ const arr=Array.isArray(state.data[a.key])?state.data[a.key]:[]; const d=document.createElement('div'); d.className='stat'; d.innerHTML=`<div>${a.name}</div><div class='value'>${arr.length}</div>`; s.appendChild(d); }); }
+
+    function addressListFromRow(row){
+      if(row.address) return [row.address];
+      const id=row.tx_id; if(!id) return [];
+      const txMap = window.__txCache || {}; if(txMap[id]) return txMap[id];
+      return []; // 懒加载：点击详情再取交易数据
+    }
+
+    function renderPhase4(){
+      const container=document.getElementById('typeDetails'); container.innerHTML='';
+      const types=['spray','funnel','coinjoin','mining','quantum'];
+      types.forEach(t=>{
+        const arr=Array.isArray(state.data[t])?state.data[t]:[];
+        const box=document.createElement('div'); box.style.marginBottom='12px';
+        const title=document.createElement('div'); title.style.color='#aaa'; title.style.marginBottom='6px'; title.textContent=`${t} · 异常地址与风险`;
+        const table=document.createElement('table'); table.className='table';
+        table.innerHTML='<thead><tr><th>地址/交易</th><th>风险(概率)</th><th>详情</th></tr></thead><tbody></tbody>';
+        const tbody=table.querySelector('tbody');
+        arr.slice(0,20).forEach(row=>{
+          const id=row.tx_id || row.entity || row.address || '-';
+          const score=normalizeScore(row);
+          let level='low'; if(score>=0.7) level='high'; else if(score>=0.4) level='medium';
+          const tr=document.createElement('tr');
+          tr.innerHTML=`<td><span class='tx' onclick="showTx('${id}')">${id}</span></td><td><span class='badge ${level}'>${(score*100).toFixed(1)}%</span></td><td><a href='/detail/${t}' class='tx'>查看 ${t}</a></td>`;
+          tbody.appendChild(tr);
+        });
+        box.appendChild(title); box.appendChild(table); container.appendChild(box);
+      });
+    }
+
+    async function showTx(id){ try{ const r=await fetch('/api/transaction/'+id); const tx=await r.json(); alert('交易详情\n'+JSON.stringify(tx,null,2)); }catch(e){} }
+
+    function fuse(){ const map=new Map(); ['spray','funnel','coinjoin','mining','quantum'].forEach(k=>{ const arr=Array.isArray(state.data[k])?state.data[k]:[]; arr.forEach(r=>{ const id=r.tx_id||r.entity||r.address; if(!id||!state.enabled[k]) return; const w=state.weights[k]||1; const cur=map.get(id)||{id,score:0,hits:[]}; cur.score+=normalizeScore(r)*w; cur.hits.push(k); map.set(id,cur); }); }); state.fused=Array.from(map.values()).sort((a,b)=>b.score-a.score).slice(0,50); log('融合完成，Top条目: '+state.fused.length); }
+
+    function reset(){ document.getElementById('logs').innerHTML=''; log('系统已重置'); }
+
+    document.getElementById('loadBtn').onclick=load;
+    document.getElementById('fuseBtn').onclick=fuse;
+    document.getElementById('runBtn').onclick=async ()=>{ reset(); log('启动协同流程'); await load(); fuse(); };
+    document.getElementById('resetBtn').onclick=reset;
+    initControls();
+  </script>
+</body>
+</html>

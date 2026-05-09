@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChainAML | Bio-Quantum Synergy Core</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: #111111;
+            --accent-cyan: #00f3ff; /* Hunt */
+            --accent-green: #00ff9d; /* Slime */
+            --accent-pink: #ff0055; /* Quantum */
+            --text-main: #e0e0e0;
+            --text-dim: #666;
+            --border-color: #333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* --- 布局结构 --- */
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 60px 1fr 200px;
+            height: 100vh;
+            gap: 1px;
+        }
+
+        /* --- 顶部导航 --- */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -1px;
+        }
+        .logo span { color: var(--accent-green); }
+
+        /* --- 侧边栏 (基础算法库) --- */
+        .sidebar {
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .sidebar h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+        .algo-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+        }
+        .status-dot.active { background: var(--accent-cyan); box-shadow: 0 0 5px var(--accent-cyan); }
+
+        /* --- 主视窗 (创新算法协同) --- */
+        .main-dashboard {
+            background: var(--bg-color);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        .panel-title { font-size: 0.9rem; font-weight: 600; }
+        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; }
+        
+        /* 特定面板样式 */
+        .hunt-panel .tag { background: rgba(0, 243, 255, 0.1); color: var(--accent-cyan); }
+        .slime-panel .tag { background: rgba(0, 255, 157, 0.1); color: var(--accent-green); }
+        .quantum-panel .tag { background: rgba(255, 0, 85, 0.1); color: var(--accent-pink); }
+
+        .chart-container {
+            flex-grow: 1;
+            position: relative;
+            height: 250px;
+        }
+
+        /* --- 底部控制台 --- */
+        .console-area {
+            grid-column: 1 / -1;
+            background: #000;
+            border-top: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .console-logs {
+            flex-grow: 1;
+            overflow-y: auto;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            height: 120px;
+        }
+        .log-entry { margin-bottom: 4px; }
+        .log-entry.system { color: #888; }
+        .log-entry.hunt { color: var(--accent-cyan); }
+        .log-entry.slime { color: var(--accent-green); }
+        .log-entry.quantum { color: var(--accent-pink); }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        button:hover { background: rgba(255,255,255,0.2); }
+        button.primary {
+            background: var(--accent-cyan);
+            color: black;
+            border: none;
+            font-weight: 700;
+        }
+        button.primary:hover { background: #00dce8; }
+
+        /* 协同动画连线效果 (简单模拟) */
+        .pipeline-arrow {
+            position: absolute;
+            top: 50%;
+            right: -22px;
+            font-size: 20px;
+            color: #333;
+            z-index: 10;
+        }
+        .active .pipeline-arrow { color: white; text-shadow: 0 0 5px white; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo">ChainAML <span>// NEXUS</span></div>
+        <div style="font-size: 0.8rem; color: #666;">System Status: <span style="color:var(--accent-green)">OPERATIONAL</span></div>
+    </div>
+
+    <div class="sidebar">
+        <h3>Base Layer (Filters)</h3>
+        <div class="algo-card">
+            <span>1. GNN Link Prediction</span>
+            <div class="status-dot active"></div>
+        </div>
+        <div class="algo-card">
+            <span>2. Rule-Based Engine</span>
+            <div class="status-dot active"></div>
+        </div>
+        <div class="algo-card">
+            <span>3. High-Freq Monitor</span>
+            <div class="status-dot active"></div>
+        </div>
+        <div class="algo-card">
+            <span>4. KYC Entity Matching</span>
+            <div class="status-dot active"></div>
+        </div>
+        <div class="algo-card">
+            <span>5. Subgraph Mining</span>
+            <div class="status-dot active"></div>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top:20px; border-top:1px solid #333;">
+            <h3>Data Ingestion</h3>
+            <div style="font-size:0.75rem; color:#888;">
+                Streaming: Ethereum Mainnet<br>
+                Blocks: #18239400...<br>
+                TPS: 12.4
+            </div>
+        </div>
+    </div>
+
+    <div class="main-dashboard">
+        
+        <div class="panel hunt-panel" id="panel-hunt">
+            <div class="pipeline-arrow">→</div>
+            <div class="panel-header">
+                <span class="panel-title">Phase I: Detection</span>
+                <span class="tag">hunt.py</span>
+            </div>
+            <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">
+                Algorithm: <b>Temporal Z-Score</b><br>
+                Target: Coordinated Bot Actions
+            </div>
+            <div class="chart-container">
+                <canvas id="huntChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel slime-panel" id="panel-slime">
+            <div class="pipeline-arrow">→</div>
+            <div class="panel-header">
+                <span class="panel-title">Phase II: Tracing</span>
+                <span class="tag">slime_mold.py</span>
+            </div>
+            <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">
+                Algorithm: <b>Physarum Network</b><br>
+                Target: Optimized Flow/Topology
+            </div>
+            <div class="chart-container" style="background:black; border-radius:4px; display:flex; align-items:center; justify-content:center;">
+                <canvas id="slimeCanvas" width="280" height="220"></canvas>
+            </div>
+        </div>
+
+        <div class="panel quantum-panel" id="panel-quantum">
+            <div class="panel-header">
+                <span class="panel-title">Phase III: Verdict</span>
+                <span class="tag">QSMA.py</span>
+            </div>
+            <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">
+                Algorithm: <b>Quantum Interference</b><br>
+                Target: Global Maxima (Laundering Path)
+            </div>
+            <div class="chart-container">
+                <canvas id="quantumChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="console-area">
+        <div class="console-logs" id="consoleLogs">
+            <div class="log-entry system">[SYSTEM] ChainAML Nexus initialized.</div>
+            <div class="log-entry system">[SYSTEM] Connected to Base Layer (5 algorithms).</div>
+            <div class="log-entry system">[SYSTEM] Awaiting data stream...</div>
+        </div>
+        <div class="controls">
+            <button class="primary" onclick="runSynergy()">INITIATE SYNERGY PROTOCOL</button>
+            <button onclick="resetAll()">RESET SYSTEM</button>
+            <button style="border-color: #ff0055; color: #ff0055;" onclick="injectThreat()">INJECT MULE ATTACK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === 模拟数据与图表初始化 ===
+
+    // 1. Hunt Chart (时间序列检测)
+    const ctxHunt = document.getElementById('huntChart').getContext('2d');
+    let huntChart = new Chart(ctxHunt, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 20}, (_, i) => i),
+            datasets: [{
+                label: 'Tx Density (Z-Score)',
+                data: Array(20).fill(0.5).map(v => v + Math.random() * 0.5),
+                borderColor: '#00f3ff',
+                backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                borderWidth: 1,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { display: true, grid: { color: '#222' } }
+            }
+        }
+    });
+
+    // 2. Slime Canvas (网络绘制逻辑)
+    const slimeCanvas = document.getElementById('slimeCanvas');
+    const sCtx = slimeCanvas.getContext('2d');
+    let slimeNodes = [];
+    
+    function initSlime() {
+        sCtx.clearRect(0, 0, 280, 220);
+        sCtx.fillStyle = '#222';
+        sCtx.font = "10px monospace";
+        sCtx.fillText("Waiting for Hunt detection...", 60, 110);
+    }
+    initSlime();
+
+    // 3. Quantum Chart (柱状图 - 干涉结果)
+    const ctxQuantum = document.getElementById('quantumChart').getContext('2d');
+    let quantumChart = new Chart(ctxQuantum, {
+        type: 'bar',
+        data: {
+            labels: ['Path A', 'Path B', 'Path C', 'Path D', 'Path E', 'Path F'],
+            datasets: [{
+                label: 'Probability Amplitude',
+                data: [10, 15, 8, 12, 9, 11], // 初始噪音
+                backgroundColor: '#333',
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { display: false },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // === 核心协同逻辑 (The Synergy) ===
+    
+    function log(msg, type='system') {
+        const div = document.getElementById('consoleLogs');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `<span style="opacity:0.5">[${new Date().toLocaleTimeString().split(' ')[0]}]</span> ${msg}`;
+        div.appendChild(entry);
+        div.scrollTop = div.scrollHeight;
+    }
+
+    async function runSynergy() {
+        // Reset
+        log("Starting ChainAML Synergy Loop...", 'system');
+        
+        // Step 0: Base Layer Filter (模拟)
+        log("Base Layer: GNN & Rule Engine filtering 100k transactions...", 'system');
+        await new Promise(r => setTimeout(r, 800));
+        log("Base Layer: 500 suspicious addresses forwarded to Hunt Module.", 'system');
+
+        // Step 1: HUNT.PY (Detect)
+        document.getElementById('panel-hunt').style.borderColor = '#00f3ff';
+        log(">> HUNT.PY: Analyzing temporal correlation...", 'hunt');
+        
+        // 动画：Hunt 图表出现尖刺
+        let spikes = Array(20).fill(0.5).map(v => v + Math.random() * 0.5);
+        spikes[15] = 8.5; // 巨大的异常
+        spikes[14] = 5.0;
+        spikes[16] = 4.0;
+        huntChart.data.datasets[0].data = spikes;
+        huntChart.data.datasets[0].borderColor = '#ff0055'; // 变红
+        huntChart.update();
+        
+        await new Promise(r => setTimeout(r, 1000));
+        log(">> HUNT.PY: ANOMALY DETECTED. Z-Score > 8.0 at t=15.", 'hunt');
+        log(">> HUNT.PY: Sending 50 suspicious nodes to Slime Mold Simulator.", 'hunt');
+
+        // Step 2: SLIME_MOLD.PY (Trace)
+        document.getElementById('panel-hunt').style.borderColor = '#333';
+        document.getElementById('panel-slime').style.borderColor = '#00ff9d';
+        log(">> SLIME.PY: Initializing Physarum simulation...", 'slime');
+        
+        // 动画：Slime 网络生长
+        sCtx.clearRect(0, 0, 280, 220);
+        drawSlimeNetwork();
+        
+        await new Promise(r => setTimeout(r, 1500));
+        log(">> SLIME.PY: Optimal path converged. Topology implies 'Layering' pattern.", 'slime');
+        log(">> SLIME.PY: Feeding topology to Quantum Oracle.", 'slime');
+
+        // Step 3: QSMA.PY (Verdict)
+        document.getElementById('panel-slime').style.borderColor = '#333';
+        document.getElementById('panel-quantum').style.borderColor = '#ff0055';
+        log(">> QSMA.PY: Constructing Quantum Circuit (5 Qubits)...", 'quantum');
+        
+        // 动画：量子干涉 (噪音消失，波峰出现)
+        await new Promise(r => setTimeout(r, 800));
+        log(">> QSMA.PY: Applying Grover's Diffuser (Interference)...", 'quantum');
+        
+        // 更新数据：噪音归零，目标暴涨
+        quantumChart.data.datasets[0].data = [1, 0, 2, 0, 98, 1]; 
+        quantumChart.data.datasets[0].backgroundColor = ['#333', '#333', '#333', '#333', '#ff0055', '#333'];
+        quantumChart.update();
+
+        log(">> QSMA.PY: WAVE FUNCTION COLLAPSED. Path E is 98% probable.", 'quantum');
+        log(">> SYSTEM: MONEY LAUNDERING RING IDENTIFIED. AUTO-FREEZE EXECUTED.", 'system');
+    }
+
+    // 辅助：画黏菌网络
+    function drawSlimeNetwork() {
+        const nodes = [
+            {x: 40, y: 180}, {x: 80, y: 150}, {x: 60, y: 100}, // Sources
+            {x: 140, y: 110}, {x: 160, y: 80}, // Hubs
+            {x: 240, y: 40} // Target
+        ];
+        
+        // Draw connections (Veins)
+        sCtx.beginPath();
+        sCtx.strokeStyle = 'rgba(0, 255, 157, 0.3)';
+        sCtx.lineWidth = 1;
+        // Random lines simulating search
+        for(let i=0; i<10; i++) {
+            sCtx.moveTo(Math.random()*280, Math.random()*220);
+            sCtx.lineTo(Math.random()*280, Math.random()*220);
+        }
+        sCtx.stroke();
+
+        // Draw Main Path (Thick)
+        sCtx.beginPath();
+        sCtx.strokeStyle = '#00ff9d';
+        sCtx.lineWidth = 3;
+        sCtx.moveTo(nodes[0].x, nodes[0].y);
+        sCtx.lineTo(nodes[3].x, nodes[3].y);
+        sCtx.lineTo(nodes[5].x, nodes[5].y);
+        
+        sCtx.moveTo(nodes[1].x, nodes[1].y);
+        sCtx.lineTo(nodes[3].x, nodes[3].y);
+        sCtx.stroke();
+
+        // Draw Nodes
+        nodes.forEach(n => {
+            sCtx.beginPath();
+            sCtx.fillStyle = '#fff';
+            sCtx.arc(n.x, n.y, 3, 0, Math.PI*2);
+            sCtx.fill();
+        });
+    }
+
+    function injectThreat() {
+        log("!! WARNING: Simulated Attack Pattern Injected !!", 'system');
+        runSynergy();
+    }
+
+    function resetAll() {
+        document.querySelectorAll('.panel').forEach(p => p.style.borderColor = '#333');
+        huntChart.data.datasets[0].borderColor = '#00f3ff';
+        huntChart.data.datasets[0].data = Array(20).fill(0.5).map(v => v + Math.random() * 0.5);
+        huntChart.update();
+        
+        initSlime();
+        
+        quantumChart.data.datasets[0].data = [10, 15, 8, 12, 9, 11];
+        quantumChart.data.datasets[0].backgroundColor = '#333';
+        quantumChart.update();
+        
+        log("[SYSTEM] Reset complete.", 'system');
+    }
+
+</script>
+
+</body>
+</html>

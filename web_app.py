@@ -146,6 +146,18 @@ def detail_page(detection_type):
     """检测详情页面"""
     return render_template('detail.html', detection_type=detection_type)
 
+@app.route('/aml')
+def aml_page():
+    return render_template('AML.html')
+
+@app.route('/index2')
+def index2_page():
+    return render_template('index2.html')
+
+@app.route('/classification/<detection_type>')
+def classification_page(detection_type):
+    return render_template('classification.html', detection_type=detection_type)
+
 def kill_port_processes(port):
     """尝试关闭占用指定端口的进程"""
     try:
@@ -156,16 +168,18 @@ def kill_port_processes(port):
             text=True
         )
         if result.returncode == 0 and result.stdout.strip():
-            pids = result.stdout.strip().split('\n')
+            pids = list(dict.fromkeys(result.stdout.strip().split('\n')))
             killed_count = 0
             for pid in pids:
                 try:
-                    # 先尝试正常关闭
-                    subprocess.run(['kill', pid], check=False, timeout=1)
+                    proc1 = subprocess.run(['kill', pid], check=False, timeout=1, capture_output=True)
                     time.sleep(0.2)
-                    # 如果还在运行，强制关闭
-                    subprocess.run(['kill', '-9', pid], check=False, timeout=1)
-                    killed_count += 1
+                    exists = subprocess.run(['ps', '-p', pid], check=False, timeout=1, capture_output=True)
+                    proc2 = None
+                    if exists.returncode == 0:
+                        proc2 = subprocess.run(['kill', '-9', pid], check=False, timeout=1, capture_output=True)
+                    if (proc1.returncode == 0) or (proc2 is not None and proc2.returncode == 0):
+                        killed_count += 1
                 except:
                     pass
             if killed_count > 0:
@@ -181,49 +195,48 @@ if __name__ == '__main__':
     run_all_detections()
     print("检测完成，启动Web服务器...")
     
-    # 直接使用5000端口
-    port = 5000
-    
-    # 检查端口是否可用，如果被占用则尝试关闭占用进程
-    # 对于AirPlay Receiver这种会自动重启的服务，需要多次尝试
+    preferred = os.getenv('PORT')
+    try:
+        port = int(preferred) if preferred else 5000
+    except:
+        port = 5000
+
     max_attempts = 10
-    
+    bound = False
     for attempt in range(max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
-                # 尝试绑定端口
                 s.bind(('', port))
                 print(f"✓ 端口{port}可用")
+                bound = True
                 break
             except OSError:
-                if attempt < max_attempts - 1:
-                    if attempt == 0:
-                        print(f"端口{port}被占用，正在尝试关闭占用进程...")
-                    # 持续尝试关闭占用进程
-                    kill_port_processes(port)
-                    # 等待时间逐渐增加
-                    wait_time = min(0.5 + attempt * 0.3, 2.0)
-                    time.sleep(wait_time)
-                else:
-                    # 最后一次尝试：使用SO_REUSEADDR强制绑定
-                    print(f"尝试强制绑定端口{port}...")
-                    try:
-                        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        s.bind(('', port))
-                        print(f"✓ 成功强制绑定端口{port}")
-                        break
-                    except OSError:
-                        print(f"\n错误：无法绑定端口{port}。")
-                        print(f"提示：在macOS上，可能是AirPlay Receiver占用了5000端口。")
-                        print(f"解决方法：")
-                        print(f"  1. 系统设置 -> 通用 -> AirDrop与隔空播放 -> 关闭AirPlay接收器")
-                        print(f"  2. 或者手动运行: sudo lsof -ti:5000 | xargs kill -9")
-                        sys.exit(1)
-    
+                if attempt == 0:
+                    print(f"端口{port}被占用，正在尝试关闭占用进程...")
+                kill_port_processes(port)
+                wait_time = min(0.5 + attempt * 0.3, 2.0)
+                time.sleep(wait_time)
+    if not bound:
+        for candidate in list(range(port + 1, port + 11)) + list(range(8000, 8101)):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(('', candidate))
+                    print(f"端口{port}不可用，切换到端口{candidate}")
+                    port = candidate
+                    bound = True
+                    break
+                except OSError:
+                    continue
+    if not bound:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            port = s.getsockname()[1]
+            bound = True
+            print(f"端口{port}不可用，使用临时端口{port}")
+
     print(f"\n服务器运行在:")
     print(f"  - http://localhost:{port}")
     print(f"  - http://127.0.0.1:{port}")
     print(f"\n注意：不要使用 http://0.0.0.0:{port} 访问，请使用 localhost 或 127.0.0.1\n")
     
     app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False)
-
